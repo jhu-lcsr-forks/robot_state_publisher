@@ -64,7 +64,7 @@ public:
   /** Constructor
    * \param tree The kinematic model of a robot, represented by a KDL Tree 
    */
-  RobotStatePublisher(const KDL::Tree& tree);
+  RobotStatePublisher(const KDL::Tree& tree, const bool no_orphan_frames=false);
 
   /// Destructor
   ~RobotStatePublisher(){};
@@ -79,6 +79,7 @@ public:
 private:
   void addChildren(const KDL::SegmentMap::const_iterator segment);
 
+  bool no_orphan_frames_;
 
   std::map<std::string, SegmentPair> segments_, segments_fixed_;
   tf::TransformBroadcaster tf_broadcaster_;

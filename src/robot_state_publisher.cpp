@@ -45,7 +45,8 @@ using namespace ros;
 
 namespace robot_state_publisher{
 
-  RobotStatePublisher::RobotStatePublisher(const KDL::Tree& tree)
+  RobotStatePublisher::RobotStatePublisher(const KDL::Tree& tree, const bool no_orphan_frames)
+    : no_orphan_frames_(no_orphan_frames)
   {
     // walk the tree and add segments to segments_
     addChildren(tree.getRootSegment());
@@ -83,13 +84,19 @@ namespace robot_state_publisher{
     tf_transform.stamp_ = time;
 
     // loop over all joints
-    for (map<string, double>::const_iterator jnt=joint_positions.begin(); jnt != joint_positions.end(); jnt++){
+    for (
+        map<string, double>::const_iterator jnt=joint_positions.begin(); 
+        jnt != joint_positions.end(); 
+        jnt++)
+    {
       std::map<std::string, SegmentPair>::const_iterator seg = segments_.find(jnt->first);
       if (seg != segments_.end()){
         tf::transformKDLToTF(seg->second.segment.pose(jnt->second), tf_transform);    
         tf_transform.frame_id_ = tf::resolve(tf_prefix, seg->second.root);
         tf_transform.child_frame_id_ = tf::resolve(tf_prefix, seg->second.tip);
         tf_transforms.push_back(tf_transform);
+      } else if(no_orphan_frames_) {
+        break;
       }
     }
     tf_broadcaster_.sendTransform(tf_transforms);

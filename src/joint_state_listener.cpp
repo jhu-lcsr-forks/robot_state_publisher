@@ -47,8 +47,8 @@ using namespace ros;
 using namespace KDL;
 using namespace robot_state_publisher;
 
-JointStateListener::JointStateListener(const KDL::Tree& tree, const MimicMap& m)
-  : state_publisher_(tree), mimic_(m)
+JointStateListener::JointStateListener(const KDL::Tree& tree, const MimicMap& m, const bool no_orphans)
+  : state_publisher_(tree, no_orphans), mimic_(m)
 {
   ros::NodeHandle n_tilde("~");
   ros::NodeHandle n;
@@ -165,7 +165,11 @@ int main(int argc, char** argv)
     }
   }
 
-  JointStateListener state_publisher(tree, mimic);
+  // enable this to only publish frames on a tree if their parents have also been published
+  bool no_orphans;
+  ros::param::param("~no_orphans", no_orphans, false);
+
+  JointStateListener state_publisher(tree, mimic, no_orphans);
   ros::spin();
 
   return 0;
